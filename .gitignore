@@ -1,0 +1,58 @@
+# --- Secretos: NUNCA subir ---
+.env
+.env.local
+.env.*.local
+backend/.env
+*.pem
+*.key
+
+# --- Python / Backend ---
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+ENV/
+backend/venv/
+*.db
+*.sqlite3
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+backend/uploads/
+
+# --- Node / Frontend ---
+node_modules/
+dist/
+build/
+.vite/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Despliegue / empaquetado ---
+*.zip
+*.tar.gz
+update*_produccion.zip
+
+# --- Scripts y datos desechables (ver docs/cierre_de_dia.md) ---
+antigravity_tests/**/check_*.py
+antigravity_tests/**/scratch_*.py
+antigravity_tests/**/fix_*.py
+antigravity_tests/**/*.json
+antigravity_tests/**/*.log
+*.log
+
+# --- Residuo de un git init accidental dentro de backend/ (pendiente de borrado manual) ---
+backend/.git_BORRAR_MANUALMENTE/
+
+# --- Editor / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Alembic (si llegara a generar binarios) ---
+backend/alembic/__pycache__/

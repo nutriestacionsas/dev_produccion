@@ -1,0 +1,21 @@
+from app.models.models import (
+    Usuario,
+    Receta,
+    RecetaIngrediente,
+    RecetaPrueba,
+    RecetaPruebaIngrediente,
+    RecetaPruebaMultimedia,
+    Planificacion,
+    DiaPlanificado,
+    MenuDiarioComponente,
+    PedidoCliente,
+    Despacho,
+    DespachoProducto,
+    DespachoPesaje,
+    Inventario,
+    InventarioItem,
+    InventarioPesaje,
+    LogSincronizacionOdoo,
+    GrupoDespacho,
+    GrupoDespachoCategoria
+)
