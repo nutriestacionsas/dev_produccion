@@ -157,6 +157,7 @@ Ejecuta el ciclo de cierre en 3 sub-pasos **ordenando hijas antes que madres:**
 - **Autenticación Fuerte**: Migración de credenciales por defecto a credenciales con hasheo `bcrypt` (usuario `acalderonl1`).
 
 ### Octubre 2026 (ver `migracion_claude241026.md` para el detalle completo)
+- **Vinculación a GitHub**: proyecto conectado a `nutriestacionsas/dev_produccion` (privado), con rama `development` para trabajo diario y `main` reservada para producción (aún sin subir). Se limpiaron restos obsoletos (`rebuild.sh`, `usuarios.py` muerto, ZIP de despliegue viejo, cachés) antes del primer commit.
 - **Permisos de GMAO corregidos**: `check_permission` leía claves planas (`gmao_assets`); ahora lee `permisos.modules[<nombre>].view`, igual que el resto de la app.
 - **Scheduler GMAO pasado a cron**: de cada 30 s (modo demo) a una revisión diaria a las 8:00, hora de Ecuador.
 - **Corrección de `deploy_y_purga.md`**: el respaldo de `.env` apuntaba a la raíz del proyecto en vez de a `backend/.env` (el que realmente usa el compose), y el `rm -rf` del Paso 3 borraba `backend/uploads/` (documentos de GMAO) sin respaldarlos.

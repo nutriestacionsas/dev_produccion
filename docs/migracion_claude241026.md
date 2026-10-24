@@ -66,9 +66,7 @@ dev_produccion/
 ├── README.md
 ├── docker-compose.yml          # db (postgres:15) + backend (:8000) + frontend (5175→80); red externa web_network
 ├── nginx.conf                  # ⚠️ NO lo usa el compose actual (el frontend corre con el servidor dev de Vite)
-├── rebuild.sh                  # Script viejo (usa docker-compose V1 y /tmp/produccion_update.zip)
 ├── limpiar_origenes_odoo.py    # Script CLI puntual: limpia 'origin' de MOs 'done' (hasta 15-oct-2026) para evitar duplicados en Establecer Producción
-├── update161026_produccion.zip # ZIP del último despliegue (16-oct-2026); según cierre_de_dia.md se debe borrar
 ├── backend/
 │   ├── Dockerfile              # python:3.10-slim, uvicorn --reload
 │   ├── .env                    # 🔒 SECRETOS (Odoo, JWT). Nunca exponer ni modificar sin pedirlo.
@@ -84,7 +82,6 @@ dev_produccion/
 │       │   └── endpoints/
 │       │       ├── auth.py             # login, /me, odoo-config, odoo-status, test de conexión
 │       │       ├── users.py            # CRUD de usuarios + PUT permisos
-│       │       ├── usuarios.py         # ⚠️ CÓDIGO MUERTO (no está registrado en api.py)
 │       │       ├── roles.py
 │       │       ├── odoo.py             # products, envases (taras), categories
 │       │       ├── recipes.py          # Recetas (BoM de Odoo), pasos, toggle, sync
@@ -363,7 +360,7 @@ Antes de seguir con la Fase 3, falta instalar `react-signature-canvas` en el fro
 5. **IDs de Odoo escritos a mano** (ubicaciones 4, 5 y 8; picking types 1 y 2; partner 5 de respaldo).
 6. **Los permisos no se validan en el backend** para la mayoría de los módulos, solo en la UI.
 7. **Migraciones duales** (Alembic sin uso + ALTERs en `main.py`).
-8. **Código muerto parcial:** `endpoints/usuarios.py` (no registrado en `api.py`) y `backend/dev_produccion.db` (0 bytes) sí están muertos. ⚠️ **Las tablas de planificación legacy (`planificaciones`, `dias_planificados`, `pedidos_clientes`, `menu_diario_componentes`) NO están muertas**: `producir_todo` en `dispatch.py` consulta `DiaPlanificado` por `fecha` para leer `costo_diario_estimado` y lo usa como `costo_estimado_dia`. No borrar esas tablas ni esa lógica sin revisar antes ese endpoint.
+8. ~~**Código muerto:** `endpoints/usuarios.py` (no registrado en `api.py`) y `backend/dev_produccion.db` (0 bytes)~~ ✅ eliminados el 24-oct-2026 al conectar el proyecto a GitHub (ver §19). ⚠️ **Las tablas de planificación legacy (`planificaciones`, `dias_planificados`, `pedidos_clientes`, `menu_diario_componentes`) NO están muertas**: `producir_todo` en `dispatch.py` consulta `DiaPlanificado` por `fecha` para leer `costo_diario_estimado` y lo usa como `costo_estimado_dia`. No borrar esas tablas ni esa lógica sin revisar antes ese endpoint.
 9. ~~Scheduler GMAO cada 30 s~~ (ya es cron diario a las 8:00) y notificaciones simuladas.
 10. **Endpoints de GMAO sin autenticación:** `/equipos/next-code`, `/categorias`, `/ubicaciones` (GET y POST).
 11. **Los documentos de GMAO se guardan en disco** dentro de `backend/uploads/` (volumen `./backend`). Se pierden si se vacía la carpeta durante el despliegue sin respaldarlos (el Paso 3 de `deploy_y_purga.md` hace `rm -rf`).
@@ -430,5 +427,18 @@ Antes de seguir con la Fase 3, falta instalar `react-signature-canvas` en el fro
 ## 18. Cierre de esta fase de migración (24-oct-2026)
 
 Esta fase se cierra con una verificación de código, no solo de lectura de documentos. Se leyó completo `backend/app/models/models.py`, se revisó `get_day_components` y el resto de métodos de `odoo_client.py` línea por línea contra `flujo_integracion_odoo.md`, se mapearon los endpoints de `planner.py`, `dispatch.py` y `dispatch_cliente.py`, y se revisó la estructura interna de `PlannerManufacturingOrders.jsx`. No se encontraron contradicciones nuevas con este documento; los hallazgos (tablas legacy vivas, doble FK en `historial_despachos`, `ruta_asignada` propia de `despacho_clientes`, convención `handleXxx`/`getXxx`, lógica de costeo en `producir_todo`) ya están incorporados arriba.
+
+## 19. Vinculación a GitHub y limpieza (24-oct-2026)
+
+El proyecto quedó conectado a [github.com/nutriestacionsas/dev_produccion](https://github.com/nutriestacionsas/dev_produccion) (repositorio privado). Flujo de ramas:
+- **`main`**: rama de producción, por defecto en GitHub. **Aún sin subir el código real** (solo tiene el README inicial que generó GitHub); se decide más adelante cuándo reconciliar y subir.
+- **`development`**: rama de trabajo, ya contiene el commit inicial completo. Es donde se sigue trabajando.
+
+Antes del primer commit se limpiaron del disco (y del repo) los restos que ya no hacían falta para trabajar con Claude Code:
+- `rebuild.sh` (script viejo de `docker-compose` V1, reemplazado por `deploy_y_purga.md`) y `backend/app/api/endpoints/usuarios.py` (código muerto, no registrado en `api.py`) — borrados con `git rm`, recuperables desde el historial de Git si hiciera falta.
+- `update161026_produccion.zip`, `backend/dev_produccion.db` (0 bytes), `.pytest_cache/` de la raíz y los `__pycache__/` de `backend/app/**` y `antigravity_tests/**` — basura reproducible, nunca estuvo en Git.
+- No se encontraron carpetas o archivos de configuración propios de Antigravity (`.antigravity/`, `.cursor/`, `AGENTS.md`, etc.); no dejó ese tipo de rastro.
+- **No se tocaron** los tests de `antigravity_tests/backend/unit_tests/` (regresión activa), `antigravity_tests/docs/investigacion_testing.md` (referencia), `nginx.conf` (guardado para una futura migración a build estático), ni `backend/venv/`/`frontend/node_modules/` (necesarios para correr tests y build).
+- Se verificó con `pytest` que los 10 tests de regresión siguen en verde después de la limpieza.
 
 **A partir de ahora, Claude trabaja con este documento como fuente de contexto principal.** Los demás `.md` de `docs/` (`requerimientos_generales.md`, `arquitectura.md`, `flujo_integracion_odoo.md`, `especificacion_calculos.md`, `cierre_de_dia.md`, `deploy_y_purga.md`, `imp_hccp_01/*`) siguen existiendo como referencia — sobre todo `especificacion_calculos.md` y `flujo_integracion_odoo.md`, que están vigentes y detallan fórmulas que este documento solo resume — pero cuando haya conflicto, manda este documento, y cuando este documento y el código no coincidan, manda el código.
